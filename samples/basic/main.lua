@@ -1,9 +1,3 @@
-----------------------------------------------------------------
--- Copyright (c) 2010-2011 Zipline Games, Inc.
--- All Rights Reserved.
--- http://getmoai.com
-----------------------------------------------------------------
-
 viewport = MOAIViewport.new ()
 viewport:setSize ( MOAIEnvironment.getViewSize() )
 viewport:setScale ( 320, 480 )
@@ -20,10 +14,15 @@ gfxQuad:setUVRect ( 1, 1, 0, 0)
 prop = MOAIProp2D.new ()
 prop:setDeck ( gfxQuad )
 layer:insertProp ( prop )
-prop:moveRot ( 360 * 3, 1.5 * 10 )
+prop:moveRot ( 360 * 6, 1.5 * 10 )
 
-print(MOAIEnvironment.OS_BRAND_ANDROID)
-print(MOAIEnvironment.OS_BRAND_IOS)
+print(MOAIEnvironment.getDevBrand())
+print(MOAIEnvironment.getDevName())
+print(MOAIEnvironment.getDevManufacturer())
+print(MOAIEnvironment.getDevModel())
+print(MOAIEnvironment.getDevProduct())
+print(MOAIEnvironment.getOSBrand())
+print(MOAIEnvironment.getOSVersion())
 
 local sensor = MOAITouchSensor.new()
 sensor:setCallback(function(...)
@@ -50,5 +49,5 @@ MOAIInputMgr.device.touch:setCallback(function(...)
 end)
 
 MOAIInputMgr.device.keyboard:setCallback(function(key)
-	--print(string.char(key))
+	print(string.char(key))
 end)
