@@ -34,7 +34,6 @@ solution "Akuma"
 			"AntTweakBar"
 		}
 		defines {
-			"SFML_STATIC",
 			"BOOST_FILESYSTEM_VERSION=3"
 		}
 

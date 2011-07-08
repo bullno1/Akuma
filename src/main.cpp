@@ -1,7 +1,6 @@
 #include <iostream>
 #include <aku/AKU.h>
 #include "Simulator.h"
-#define BOOST_FILESYSTEM_VERSION 3
 #include <boost/filesystem.hpp>
 
 using namespace std;
