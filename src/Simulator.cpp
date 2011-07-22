@@ -14,10 +14,13 @@ using namespace std;
 using namespace sf;
 namespace fs = boost::filesystem;
 
-AKUContextID akuContext;
-RenderWindow window;
-ExitReason::Enum exitReason = ExitReason::Error;
-FW::FileWatcher fw;
+namespace
+{
+	AKUContextID akuContext;
+	RenderWindow window;
+	ExitReason::Enum exitReason = ExitReason::Error;
+	FW::FileWatcher fw;
+}
 
 struct ProjectFolderWatchListener: public FW::FileWatchListener
 {
@@ -67,6 +70,8 @@ void startGameLoop()
 	if(!window.IsOpened())
 		return;
 
+	const Input& input = window.GetInput();
+
 	while(true)
 	{
 		Event ev;
@@ -90,7 +95,7 @@ void startGameLoop()
 					break;
 				}
 
-				injectInput(ev);
+				injectInput(ev, input);
 			}
 		}
 
@@ -99,7 +104,10 @@ void startGameLoop()
 		{
 			AKUUpdate();
 			window.Clear();
+			window.SaveGLStates();
 			AKURender();
+			window.RestoreGLStates();
+			renderTouches(window);
 			TwDraw();
 			window.Display();
 			continue;
