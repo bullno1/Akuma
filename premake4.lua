@@ -64,16 +64,7 @@ solution "Akuma"
 			}
 			flags {
 				"Optimize",
+				"OptimizeSpeed",
 				"Symbols",
 				"NoEditAndContinue"
-			}
-			targetsuffix "_d"
-
-		configuration "Release"
-			defines {
-				"NDEBUG"
-			}
-			flags {
-				"Optimize",
-				"OptimizeSpeed"
 			}

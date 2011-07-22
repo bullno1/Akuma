@@ -1,1 +1,1 @@
-..\..\bin\Akuma_d.exe iPhone_portrait main.lua
+..\..\bin\Akuma.exe iPhone_portrait main.lua
