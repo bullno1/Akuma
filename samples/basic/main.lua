@@ -24,26 +24,6 @@ print(MOAIEnvironment.getDevProduct())
 print(MOAIEnvironment.getOSBrand())
 print(MOAIEnvironment.getOSVersion())
 
-local sensor = MOAITouchSensor.new()
-sensor:setCallback(function(...)
-	print("a")
-	print(...)
-end)
-
-local keyboardSensor = MOAIKeyboardSensor.new()
-keyboardSensor:setCallback(function(...)
-	print(...)
-end)
-
-MOAIThread.new():run(function()
-	while true do
-		if(sensor:up()) then
-			print "up"
-		end
-		coroutine.yield()
-	end
-end)
-
 MOAIInputMgr.device.touch:setCallback(function(...)
 	print(...)
 end)

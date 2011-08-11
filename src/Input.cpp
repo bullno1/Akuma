@@ -2,6 +2,7 @@
 #include <aku/AKU.h>
 #include <vector>
 #include <SFML/Graphics/Shape.hpp>
+#include <SFML/Window/Keyboard.hpp>
 #include <boost/foreach.hpp>
 #define foreach BOOST_FOREACH
 
@@ -43,7 +44,7 @@ namespace
 
 	vector<Touch> touches;
 	Touch* currentTouch;
-	int touchIndex;
+	unsigned int touchIndex;
 
 	inline int sqrLength(int x1, int y1, int x2, int y2)
 	{
@@ -55,7 +56,7 @@ namespace
 	inline void handleMouseDown(int x, int y)
 	{
 		//First, check if there is a touch at that point
-		for(int i = 0; i < touches.size(); ++i)
+		for(unsigned int i = 0; i < touches.size(); ++i)
 		{
 			Touch& touch = touches[i];
 
@@ -63,7 +64,7 @@ namespace
 			{
 				currentTouch = &touch;
 				touchIndex = i;
-				//printf("Tracking old touch %d\n", touch.id);
+
 				return;
 			}
 		}
@@ -73,8 +74,6 @@ namespace
 		touchIndex = touches.size();
 		touches.push_back(newTouch);
 		currentTouch = &(touches.back());
-
-		//printf("Creating new touch %d\n", newTouchId);
 
 		AKUEnqueueTouchEvent(
 			InputDevice::Device,
@@ -164,7 +163,7 @@ void initInput()
 	clearTouches();
 }
 
-void injectInput(const Event& ev, const sf::Input& input)
+void injectInput(const Event& ev)
 {
 	switch(ev.Type)
 	{
@@ -185,7 +184,7 @@ void injectInput(const Event& ev, const sf::Input& input)
 			handleMouseUp(
 				ev.MouseButton.X,
 				ev.MouseButton.Y,
-				input.IsKeyDown(Key::LControl) || input.IsKeyDown(Key::RControl)
+				Keyboard::IsKeyPressed(Keyboard::LControl) || Keyboard::IsKeyPressed(Keyboard::RControl)
 			);
 		break;
 	case Event::MouseMoved:

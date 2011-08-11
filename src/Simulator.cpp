@@ -70,8 +70,6 @@ void startGameLoop()
 	if(!window.IsOpened())
 		return;
 
-	const Input& input = window.GetInput();
-
 	while(true)
 	{
 		Event ev;
@@ -86,7 +84,7 @@ void startGameLoop()
 					exitReason = ExitReason::UserAction;
 					return;
 				case Event::KeyPressed:
-					if(ev.Key.Control && ev.Key.Code == Key::R)
+					if(ev.Key.Control && ev.Key.Code == Keyboard::R)
 					{
 						closeWindow();
 						exitReason = ExitReason::Restart;
@@ -95,7 +93,7 @@ void startGameLoop()
 					break;
 				}
 
-				injectInput(ev, input);
+				injectInput(ev);
 			}
 		}
 

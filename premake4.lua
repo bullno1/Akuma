@@ -1,5 +1,5 @@
 solution "Akuma"
-	configurations {"Develop", "Release"}
+	configurations {"Develop"}
 	location "build"
 
 	project "Akuma"
@@ -27,7 +27,7 @@ solution "Akuma"
 		links {
 			"moaicore",
 			"moaiext-luaext",
-			"moaiext-untz",
+			--"moaiext-untz",--I can't build untz
 			"sfml-window",
 			"sfml-system",
 			"sfml-graphics",
