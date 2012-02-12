@@ -4,22 +4,20 @@
 #include <aku/AKU.h>
 #include <aku/AKU-luaext.h>
 #include <aku/AKU-untz.h>
-#include <AntTweakBar.h>
-#include <SFML/Graphics.hpp>
 #include "Utils.h"
 #include "Input.h"
 #include <FileWatcher/FileWatcher.h>
+#include <SDL.h>
+#include <SDL_opengl.h>
 
 using namespace std;
-using namespace sf;
 namespace fs = boost::filesystem;
 
 namespace
 {
 	AKUContextID akuContext;
-	RenderWindow window;
-	ExitReason::Enum exitReason = ExitReason::Error;
 	FW::FileWatcher fw;
+	Uint32 frameDelta = 1000 / 60;
 }
 
 struct ProjectFolderWatchListener: public FW::FileWatchListener
@@ -46,68 +44,64 @@ void exitFullscreenMode()
 
 void openWindow(const char* title, int width, int height)
 {
-	if(window.IsOpened())
-		return;
+	SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO);
+	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-	window.Create(VideoMode((unsigned int)width, (unsigned int)height), title, Style::Titlebar | Style::Close);
-	window.SetFramerateLimit(60);
-
-	TwInit(TW_OPENGL, 0);
-	TwWindowSize(width, height);
+	SDL_SetVideoMode(width, height, 32, SDL_OPENGL);
+	AKUDetectGfxContext();
+	AKUSetScreenSize(width, height);
 }
 
 void closeWindow()
 {
-	if(window.IsOpened())
-	{
-		TwTerminate();
-		window.Close();
-	}	
+	AKUReleaseGfxContext();
+	SDL_Quit();
 }
 
-void startGameLoop()
+ExitReason::Enum startGameLoop()
 {
-	if(!window.IsOpened())
-		return;
-
+	Uint32 lastFrame = SDL_GetTicks();
 	while(true)
 	{
-		Event ev;
-		while(window.PollEvent(ev))
+		SDL_Event ev;
+		while(SDL_PollEvent(&ev))
 		{
-			if(!TwEventSFML(&ev, SFML_VERSION_MAJOR, SFML_VERSION_MINOR))
+			switch(ev.type)
 			{
-				switch(ev.Type)
+			case SDL_QUIT:
+				closeWindow();
+				return ExitReason::UserAction;
+			case SDL_KEYDOWN:
+				if(ev.key.keysym.sym == SDLK_r && (SDL_GetModState() & KMOD_CTRL))
 				{
-				case Event::Closed:
 					closeWindow();
-					exitReason = ExitReason::UserAction;
-					return;
-				case Event::KeyPressed:
-					if(ev.Key.Control && ev.Key.Code == Keyboard::R)
-					{
-						closeWindow();
-						exitReason = ExitReason::Restart;
-						return;
-					}
-					break;
+					return ExitReason::Restart;
 				}
-
-				injectInput(ev);
+				break;
 			}
+
+			injectInput(ev);
 		}
 
 		fw.update();
 		if(!projListener.dirty)
 		{
 			AKUUpdate();
-			window.Clear();
-			window.SaveGLStates();
+			glClear(GL_COLOR_BUFFER_BIT);
 			AKURender();
-			window.RestoreGLStates();
-			renderTouches(window);
-			TwDraw();
-			window.Display();
+			SDL_GL_SwapBuffers();
+
+			Uint32 currentFrame = SDL_GetTicks();
+			Uint32 delta = currentFrame - lastFrame;
+			if(delta < frameDelta)
+				SDL_Delay(frameDelta - delta);
+			lastFrame = SDL_GetTicks();
+
 			continue;
 		}
 		else
@@ -116,13 +110,12 @@ void startGameLoop()
 			while(true)//delay reload in case of a lot of changes
 			{
 				projListener.dirty = false;
-				sf::Sleep(100);
+				SDL_Delay(100);
 				fw.update();
 				if(!projListener.dirty)
 					break;
 			}
-			exitReason = ExitReason::Restart;
-			return;
+			return ExitReason::Restart;
 		}
 	}
 }
@@ -139,46 +132,36 @@ bool initSimulator(const fs::path& profilePath, const char* profile)
 	AKUExtLoadLuasocket();
 	AKUExtLoadLuasql();
 	//Load untz
-	//AKUUntzInit();
+	AKUUntzInit();
+
 	initInput();
 
 	AKUSetFunc_EnterFullscreenMode(&enterFullscreenMode);
 	AKUSetFunc_ExitFullscreenMode(&exitFullscreenMode);
 	AKUSetFunc_OpenWindow(&openWindow);
 
-	try
-	{
-		fs::current_path(profilePath);
-	}
-	catch(std::exception& e)
-	{
-		cout	<< "Error changing directory to: " << profilePath << endl
-				<< e.what() << endl;
-		return false;
-	}
-
+	//Load base script
+	AKURunScript((profilePath / "Akuma.lua").string().c_str());
 	cout << "Loading profile " << profile << endl;
-	AKURunScript((string(profile) + ".lua").c_str());
+	AKURunScript((profilePath / (string(profile) + ".lua")).string().c_str());
 
 	writeSeparator();
 
-	AKUSetFunc_StartGameLoop(&startGameLoop);
-	
 	return true;
 }
 
 ExitReason::Enum startSimulator(const boost::filesystem::path& pathToMain)
 {
-	exitReason = ExitReason::Error;
 	fs::path filename = pathToMain.filename();
 	fs::path projectDir = pathToMain.parent_path();
-	//Change working directory to the app's directory
-	fs::current_path(projectDir);
+	//change working directory
+	AKUSetWorkingDirectory(projectDir.string().c_str());
 	//Start the watcher
 	projListener.dirty = false;
 	FW::WatchID watchID = fw.addWatch(projectDir.string(), &projListener);
-	//start the main script
+	//run the main script
 	AKURunScript(filename.string().c_str());
+	ExitReason::Enum exitReason = startGameLoop();
 
 	fw.removeWatch(watchID);
 	//Ensure that window is closed

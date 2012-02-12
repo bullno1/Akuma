@@ -1,8 +1,7 @@
 #ifndef _AKUMA_INPUT_H_
 #define _AKUMA_INPUT_H_
 
-#include <SFML/Window/Event.hpp>
-#include <SFML/Graphics/RenderTarget.hpp>
+#include <SDL.h>
 
 namespace InputDevice
 {
@@ -37,7 +36,6 @@ namespace InputSensor
 
 
 void initInput();
-void injectInput(const sf::Event& ev);
-void renderTouches(sf::RenderTarget& target);
+void injectInput(const SDL_Event& ev);
 
 #endif
