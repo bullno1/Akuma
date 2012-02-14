@@ -9,7 +9,6 @@ gfxQuad = MOAIGfxQuad2D.new ()
 gfxQuad:setTexture ( "cathead.png" )
 gfxQuad:setRect ( -64, -64, 64, 64 )
 gfxQuad:setUVRect ( 1, 1, 0, 0)
-layer:set()
 
 prop = MOAIProp2D.new ()
 prop:setDeck ( gfxQuad )
