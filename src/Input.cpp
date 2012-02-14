@@ -152,7 +152,7 @@ void initInput()
 	AKUSetInputDeviceButton(InputDevice::Device, InputSensor::SearchButton, "searchButton");
 	AKUSetInputDeviceCompass(InputDevice::Device, InputSensor::Compass, "compass");
 	AKUSetInputDeviceKeyboard(InputDevice::Device, InputSensor::Keyboard, "keyboard");
-	AKUSetInputDeviceLevel(InputDevice::Device, InputSensor::Accelerometer, "accelerometer");
+	AKUSetInputDeviceLevel(InputDevice::Device, InputSensor::Accelerometer, "level");
 	AKUSetInputDeviceTouch(InputDevice::Device, InputSensor::Touch, "touch");
 
 	clearTouches();
