@@ -27,11 +27,8 @@ solution "Akuma"
 		links {
 			"moaicore",
 			"moaiext-luaext",
-			--"moaiext-untz",--I can't build untz
-			"sfml-window",
-			"sfml-system",
-			"sfml-graphics",
-			"AntTweakBar"
+			"moaiext-untz",
+			"SDL"
 		}
 		defines {
 			"BOOST_FILESYSTEM_VERSION=3"
@@ -48,7 +45,10 @@ solution "Akuma"
 				"ws2_32",
 				"iphlpapi",
 				"user32",
-				"gdi32"
+				"gdi32",
+				"psapi",
+				"dsound",
+				"strmiids"
 			}
 			files {
 				"src/FileWatcher/FileWatcherWin32.cpp"

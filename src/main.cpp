@@ -2,6 +2,8 @@
 #include <aku/AKU.h>
 #include "Simulator.h"
 #include <boost/filesystem.hpp>
+#include <SDL.h>
+#undef main
 
 using namespace std;
 namespace fs = boost::filesystem;

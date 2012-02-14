@@ -1,13 +1,10 @@
 #include "Input.h"
 #include <aku/AKU.h>
 #include <vector>
-#include <SFML/Graphics/Shape.hpp>
-#include <SFML/Window/Keyboard.hpp>
 #include <boost/foreach.hpp>
 #define foreach BOOST_FOREACH
 
 using namespace std;
-using namespace sf;
 
 namespace
 {
@@ -22,8 +19,6 @@ namespace
 
 	vector<int> freeIds;
 	int lastTouchId = 0;
-
-	sf::Shape touchIcon = sf::Shape::Circle(0.f, 0.f, (float)TOUCH_RADIUS, sf::Color(255, 255, 255, 128));
 
 	int makeTouchId()
 	{
@@ -157,50 +152,38 @@ void initInput()
 	AKUSetInputDeviceButton(InputDevice::Device, InputSensor::SearchButton, "searchButton");
 	AKUSetInputDeviceCompass(InputDevice::Device, InputSensor::Compass, "compass");
 	AKUSetInputDeviceKeyboard(InputDevice::Device, InputSensor::Keyboard, "keyboard");
-	AKUSetInputDeviceLevel(InputDevice::Device, InputSensor::Accelerometer, "accelerometer");
+	AKUSetInputDeviceLevel(InputDevice::Device, InputSensor::Accelerometer, "level");
 	AKUSetInputDeviceTouch(InputDevice::Device, InputSensor::Touch, "touch");
 
 	clearTouches();
 }
 
-void injectInput(const Event& ev)
+void injectInput(const SDL_Event& ev)
 {
-	switch(ev.Type)
+	switch(ev.type)
 	{
-	case Event::KeyPressed:
-		if(ev.Key.Code < 127)
-			AKUEnqueueKeyboardEvent(InputDevice::Device, InputSensor::Keyboard, ev.Key.Code, true);
+	case SDL_KEYDOWN:
+		/*if(ev.Key.Code < 127)
+			AKUEnqueueKeyboardEvent(InputDevice::Device, InputSensor::Keyboard, ev.Key.Code, true);*/
 		break;
-	case Event::KeyReleased:
-		if(ev.Key.Code < 127)
-			AKUEnqueueKeyboardEvent(InputDevice::Device, InputSensor::Keyboard, ev.Key.Code, false);
+	case SDL_KEYUP:
+		/*if(ev.Key.Code < 127)
+			AKUEnqueueKeyboardEvent(InputDevice::Device, InputSensor::Keyboard, ev.Key.Code, false);*/
 		break;
-	case Event::MouseButtonPressed:
-		if(ev.MouseButton.Button == Mouse::Left)
-			handleMouseDown(ev.MouseButton.X, ev.MouseButton.Y);
+	case SDL_MOUSEBUTTONDOWN:
+		if(ev.button.button == SDL_BUTTON_LEFT)
+			handleMouseDown(ev.button.x, ev.button.y);
 		break;
-	case Event::MouseButtonReleased:
-		if(ev.MouseButton.Button == Mouse::Left)
+	case SDL_MOUSEBUTTONUP:
+		if(ev.button.button == SDL_BUTTON_LEFT)
 			handleMouseUp(
-				ev.MouseButton.X,
-				ev.MouseButton.Y,
-				Keyboard::IsKeyPressed(Keyboard::LControl) || Keyboard::IsKeyPressed(Keyboard::RControl)
+				ev.button.x,
+				ev.button.y,
+				(SDL_GetModState() & KMOD_CTRL) != 0
 			);
 		break;
-	case Event::MouseMoved:
-		handleMouseMove(ev.MouseMove.X, ev.MouseMove.Y);
+	case SDL_MOUSEMOTION:
+		handleMouseMove(ev.motion.x, ev.motion.y);
 		break;
-	}
-}
-
-void renderTouches(sf::RenderTarget& target)
-{
-	foreach(const Touch& touch, touches)
-	{
-		touchIcon.SetPosition(
-			static_cast<float>(touch.x),
-			static_cast<float>(touch.y)
-		);
-		target.Draw(touchIcon);
 	}
 }
