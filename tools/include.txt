@@ -1,0 +1,4 @@
+../bin
+../samples
+../README.md
+../LICENSE
