@@ -16,6 +16,9 @@ solution "Akuma"
 		includedirs {
 			"src"
 		}
+		libdirs {
+			"deps"
+		}
 		debugargs {
 			"iPhone_portrait",
 			"../samples/basic/main.lua"
@@ -28,7 +31,8 @@ solution "Akuma"
 			"moaicore",
 			"moaiext-luaext",
 			"moaiext-untz",
-			"SDL"
+			"SDL",
+			"lua-5.1.3"
 		}
 		defines {
 			"BOOST_FILESYSTEM_VERSION=3"
