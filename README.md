@@ -7,6 +7,7 @@ How to build
 * Get the dependencies:
 	- [SDL](http://www.libsdl.org/)
 	- [Boost](http://www.boost.org) with *boost.filesystem* built
+* Copy Moai's lua-5.1.3.lib to deps. (e.g: if you use VS2010 it will be in MoaiSDKRoot/vs2010/lua-lib/Release)
 * Use [premake4](http://industriousone.com/premake/download) to generate a suitable project file or build script.
 
 Usage

@@ -9,6 +9,7 @@
 #include <FileWatcher/FileWatcher.h>
 #include <SDL.h>
 #include <SDL_opengl.h>
+#include "lua.h"
 
 using namespace std;
 namespace fs = boost::filesystem;
@@ -21,6 +22,14 @@ namespace
 	bool inited = false;
 }
 
+class LuaPanicException: public std::exception
+{
+public:
+	LuaPanicException(const char* what)
+		:std::exception(what)
+	{}
+};
+
 struct ProjectFolderWatchListener: public FW::FileWatchListener
 {
 	void handleFileAction(FW::WatchID watchid, const FW::String& dir, const FW::String& filename, FW::Action action)
@@ -32,6 +41,22 @@ struct ProjectFolderWatchListener: public FW::FileWatchListener
 };
 
 ProjectFolderWatchListener projListener;
+
+//similar to AKURunScript but have panic guard
+bool runScript(const char* name)
+{
+	try
+	{
+		AKURunScript(name);
+	}
+	catch(LuaPanicException& e)
+	{
+		cout << "LuaPanic: " << e.what() << endl;
+		return false;
+	}
+
+	return true;
+}
 
 void enterFullscreenMode()
 {
@@ -129,6 +154,11 @@ ExitReason::Enum startGameLoop()
 	}
 }
 
+int onLuaPanic(lua_State *L)
+{
+	throw LuaPanicException(lua_tolstring(L, -1, 0));
+}
+
 bool initSimulator(const fs::path& profilePath, const char* profile)
 {
 	writeSeparator();
@@ -149,14 +179,22 @@ bool initSimulator(const fs::path& profilePath, const char* profile)
 	AKUSetFunc_ExitFullscreenMode(&exitFullscreenMode);
 	AKUSetFunc_OpenWindow(&openWindow);
 
+	//handle panic
+	lua_atpanic(AKUGetLuaState(), &onLuaPanic);
+
 	//Load base script
 	AKURunScript((profilePath / "Akuma.lua").string().c_str());
 	cout << "Loading profile " << profile << endl;
-	AKURunScript((profilePath / (string(profile) + ".lua")).string().c_str());
-
-	writeSeparator();
-
-	return true;
+	if(runScript((profilePath / (string(profile) + ".lua")).string().c_str()))
+	{
+		writeSeparator();
+		return true;
+	}
+	else
+	{
+		AKUDeleteContext(akuContext);
+		return false;
+	}
 }
 
 ExitReason::Enum startSimulator(const boost::filesystem::path& pathToMain)
@@ -169,8 +207,9 @@ ExitReason::Enum startSimulator(const boost::filesystem::path& pathToMain)
 	projListener.dirty = false;
 	FW::WatchID watchID = fw.addWatch(projectDir.string(), &projListener);
 	//run the main script
-	AKURunScript(filename.string().c_str());
-	ExitReason::Enum exitReason = startGameLoop();
+	ExitReason::Enum exitReason = ExitReason::Error;
+	if(runScript(filename.string().c_str()))
+		exitReason = startGameLoop();
 
 	fw.removeWatch(watchID);
 	//Ensure that window is closed
