@@ -16,6 +16,11 @@ Usage
 Akuma &lt;profile&gt; &lt;path to main.lua&gt;
 A list of existing profiles can be found in bin/profiles
 
+Environment variables:
+
+* AKUMA_DOCUMENT_DIR: MOAIEnvironment.getDocumentDirectory will return the value of this variable.
+
+
 During simulation:
 
 * Press Ctrl+R to restart
