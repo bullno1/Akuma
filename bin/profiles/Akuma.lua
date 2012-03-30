@@ -6,6 +6,8 @@ function Akuma.setupEnvironment(params)
 		MOAIEnvironment[k] = v
 	end
 
+	MOAIEnvironment.documentDirectory = os.getenv("AKUMA_DOCUMENT_DIR")
+
 	if params.screenWidth and params.screenHeight then
 		local title = params.devName or "Akuma"
 		MOAISim.openWindow(title, params.screenWidth, params.screenHeight)
