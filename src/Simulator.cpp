@@ -4,6 +4,7 @@
 #include <aku/AKU.h>
 #include <aku/AKU-luaext.h>
 #include <aku/AKU-untz.h>
+#include <lua-headers/moai_lua.h>
 #include "Utils.h"
 #include "Input.h"
 #include <FileWatcher/FileWatcher.h>
@@ -170,6 +171,7 @@ bool initSimulator(const fs::path& profilePath, const char* profile)
 	AKUExtLoadLuacurl();
 	AKUExtLoadLuasocket();
 	AKUExtLoadLuasql();
+	AKUExtLoadLuafilesystem();
 	//Load untz
 	AKUUntzInit();
 
@@ -183,6 +185,7 @@ bool initSimulator(const fs::path& profilePath, const char* profile)
 	lua_atpanic(AKUGetLuaState(), &onLuaPanic);
 
 	//Load base script
+	AKURunBytecode(moai_lua, moai_lua_SIZE);
 	AKURunScript((profilePath / "Akuma.lua").string().c_str());
 	cout << "Loading profile " << profile << endl;
 	if(runScript((profilePath / (string(profile) + ".lua")).string().c_str()))

@@ -1,5 +1,5 @@
 local viewport = MOAIViewport.new ()
-local devWidth, devHeight = MOAIEnvironment.getViewSize()
+local devWidth, devHeight = MOAIEnvironment.screenWidth, MOAIEnvironment.screenHeight
 viewport:setSize (devWidth, devHeight)
 viewport:setScale (devWidth, devHeight)
 

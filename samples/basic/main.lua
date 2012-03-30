@@ -1,5 +1,5 @@
 viewport = MOAIViewport.new ()
-viewport:setSize ( MOAIEnvironment.getViewSize() )
+viewport:setSize ( MOAIEnvironment.screenWidth, MOAIEnvironment.screenHeight)
 viewport:setScale ( 320, 480 )
 
 layer = MOAILayer2D.new ()
@@ -14,14 +14,6 @@ prop = MOAIProp2D.new ()
 prop:setDeck ( gfxQuad )
 layer:insertProp ( prop )
 prop:moveRot ( 360 * 6, 1.5 * 10 )
-
-print(MOAIEnvironment.getDevBrand())
-print(MOAIEnvironment.getDevName())
-print(MOAIEnvironment.getDevManufacturer())
-print(MOAIEnvironment.getDevModel())
-print(MOAIEnvironment.getDevProduct())
-print(MOAIEnvironment.getOSBrand())
-print(MOAIEnvironment.getOSVersion())
 
 MOAIInputMgr.device.touch:setCallback(function(...)
 	print(...)

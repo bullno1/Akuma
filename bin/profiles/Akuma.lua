@@ -1,31 +1,15 @@
-module("Akuma", package.seeall)
+Akuma = {}
 
-function setupEnvironment(params)
-	local MOAIXEnvironment = MOAIEnvironment.extend(
-		function(class, super)
-			local function overload(funcName, retVal)
-				if retVal ~= nil then
-					class[funcName] = function()
-						return retVal
-					end
-				end
-			end
-
-			overload("getDevBrand", params.devBrand)
-			overload("getDevName", params.devName)
-			overload("getDevManufacturer", params.devManufacturer)
-			overload("getDevModel", params.devModel)
-			overload("getDevProduct", params.devProduct)
-			overload("getOSBrand", params.OSBrand)
-			overload("getOSVersion", params.OSVersion)
-			overload("getDocumentDirectory", os.getenv("AKUMA_DOCUMENT_DIR"))
-		end
-	)
-
-	if params.width and params.height then
-		local title = params.devName or "Akuma"
-		MOAISim.openWindow(title, params.width, params.height)
+function Akuma.setupEnvironment(params)
+	-- Override environment info
+	for k, v in pairs(params) do
+		MOAIEnvironment[k] = v
 	end
 
-	_G.MOAIEnvironment = MOAIXEnvironment
+	if params.screenWidth and params.screenHeight then
+		local title = params.devName or "Akuma"
+		MOAISim.openWindow(title, params.screenWidth, params.screenHeight)
+	else
+		error("Device profile does not provide screenWidth and screenHeight")
+	end
 end
