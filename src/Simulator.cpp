@@ -100,59 +100,77 @@ void closeWindow()
 
 ExitReason::Enum startGameLoop()
 {
-	Uint32 lastFrame = SDL_GetTicks();
-	while(true)
+	try
 	{
-		SDL_Event ev;
-		while(SDL_PollEvent(&ev))
+		Uint32 lastFrame = SDL_GetTicks();
+		while(true)
 		{
-			switch(ev.type)
+			SDL_Event ev;
+			while(SDL_PollEvent(&ev))
 			{
-			case SDL_QUIT:
-				closeWindow();
-				return ExitReason::UserAction;
-			case SDL_KEYDOWN:
-				if(ev.key.keysym.sym == SDLK_r && (SDL_GetModState() & KMOD_CTRL))
+				switch(ev.type)
 				{
+				case SDL_QUIT:
 					closeWindow();
-					return ExitReason::Restart;
-				}
-				break;
-			}
-
-			injectInput(ev);
-		}
-
-		fw.update();
-		if(!projListener.dirty)
-		{
-			AKUUpdate();
-			glClear(GL_COLOR_BUFFER_BIT);
-			AKURender();
-			SDL_GL_SwapBuffers();
-
-			Uint32 currentFrame = SDL_GetTicks();
-			Uint32 delta = currentFrame - lastFrame;
-			if(delta < frameDelta)
-				SDL_Delay(frameDelta - delta);
-			lastFrame = SDL_GetTicks();
-
-			continue;
-		}
-		else
-		{
-			cout << "Change to project folder detected" << endl;
-			while(true)//delay reload in case of a lot of changes
-			{
-				projListener.dirty = false;
-				SDL_Delay(100);
-				fw.update();
-				if(!projListener.dirty)
+					return ExitReason::UserAction;
+				case SDL_KEYDOWN:
+					if(ev.key.keysym.sym == SDLK_r && (SDL_GetModState() & KMOD_CTRL))
+					{
+						closeWindow();
+						return ExitReason::Restart;
+					}
 					break;
+				}
+	
+				injectInput(ev);
 			}
-			return ExitReason::Restart;
+	
+			fw.update();
+			if(!projListener.dirty)
+			{
+				AKUUpdate();
+				glClear(GL_COLOR_BUFFER_BIT);
+				AKURender();
+				SDL_GL_SwapBuffers();
+	
+				Uint32 currentFrame = SDL_GetTicks();
+				Uint32 delta = currentFrame - lastFrame;
+				if(delta < frameDelta)
+					SDL_Delay(frameDelta - delta);
+				lastFrame = SDL_GetTicks();
+	
+				continue;
+			}
+			else
+			{
+				cout << "Change to project folder detected" << endl;
+				while(true)//delay reload in case of a lot of changes
+				{
+					projListener.dirty = false;
+					SDL_Delay(100);
+					fw.update();
+					if(!projListener.dirty)
+						break;
+				}
+				return ExitReason::Restart;
+			}
 		}
 	}
+	catch(LuaPanicException& e)
+	{
+		cout << "Lua panic: " << e.what() << endl;
+	}
+	catch(std::exception& e)
+	{
+		cout << "std exception: " << e.what() << endl;
+	}
+	catch(...)
+	{
+		cout << "Unknown error" << endl;
+		return ExitReason::Error;
+	}
+
+	return ExitReason::Error;
 }
 
 int onLuaPanic(lua_State *L)
