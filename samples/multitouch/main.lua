@@ -1,11 +1,12 @@
 local viewport = MOAIViewport.new ()
-local devWidth, devHeight = MOAIEnvironment.screenWidth, MOAIEnvironment.screenHeight
-viewport:setSize (devWidth, devHeight)
-viewport:setScale (devWidth, devHeight)
+local devWidth, devHeight = MOAIGfxDevice.getViewSize()
+viewport:setSize(devWidth, devHeight)
+viewport:setScale(devWidth, -devHeight)
+viewport:setOffset(-1, 1)
 
 local layer = MOAILayer2D.new ()
-layer:setViewport ( viewport )
-MOAISim.pushRenderPass ( layer )
+layer:setViewport(viewport)
+MOAISim.pushRenderPass (layer)
 
 local touchDeck = MOAIScriptDeck.new()
 local touchSensor = MOAIInputMgr.device.touch
@@ -21,6 +22,4 @@ touchDeck:setRect(-devWidth, -devHeight, devWidth, devHeight)
 local prop = MOAIProp2D.new()
 prop:setDeck(touchDeck)
 layer:insertProp(prop)
-prop:setLoc(layer:wndToWorld(0,0))
-prop:setScl(1, -1)
 prop:setBlendMode(MOAIProp2D.BLEND_ADD)

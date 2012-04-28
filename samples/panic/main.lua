@@ -1,2 +1,8 @@
 viewport = MOAIViewport.new ()
-viewport:cause_panic()
+function a()
+	viewport:cause_panic()
+end
+function b()
+	a()
+end
+b()

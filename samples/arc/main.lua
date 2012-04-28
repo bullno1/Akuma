@@ -2,9 +2,10 @@ require "arc"
 
 arc.start()
 
+local viewWidth, viewHeight = MOAIGfxDevice.getViewSize()
 viewport = MOAIViewport.new ()
-viewport:setSize ( MOAIEnvironment.screenWidth, MOAIEnvironment.screenHeight )
-viewport:setScale ( 320, 480 )
+viewport:setSize ( viewWidth, viewHeight )
+viewport:setScale ( viewWidth, viewHeight )
 
 layer = MOAILayer2D.new ()
 layer:setViewport ( viewport )
