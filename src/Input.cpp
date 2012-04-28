@@ -76,8 +76,7 @@ namespace
 			newTouchId,
 			true,
 			static_cast<float>(x),
-			static_cast<float>(y),
-			1
+			static_cast<float>(y)
 		);
 	}
 
@@ -95,8 +94,7 @@ namespace
 					touchId,
 					false,
 					static_cast<float>(x),
-					static_cast<float>(y),
-					1
+					static_cast<float>(y)
 				);
 
 				releaseTouchId(touchId);
@@ -124,8 +122,7 @@ namespace
 			currentTouch->id,
 			true,
 			static_cast<float>(x),
-			static_cast<float>(y),
-			1
+			static_cast<float>(y)
 		);
 	}
 

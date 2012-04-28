@@ -19,8 +19,8 @@ namespace
 {
 	AKUContextID akuContext;
 	FW::FileWatcher fw;
-	Uint32 frameDelta = 1000 / 60;
-	bool inited = false;
+	Uint32 frameDelta = (Uint32)(1000.0 / 60.0);
+	bool windowOpened = false;
 }
 
 class LuaPanicException: public std::exception
@@ -71,35 +71,38 @@ void exitFullscreenMode()
 
 void openWindow(const char* title, int width, int height)
 {
-	if(inited)
-		return;
-
-	SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO);
-	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	if((SDL_WasInit(0) & (SDL_INIT_TIMER | SDL_INIT_VIDEO)) == 0)
+	{
+		SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO);
+		SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+		SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+		SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+		SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 8);
+		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	}
 
 	SDL_SetVideoMode(width, height, 32, SDL_OPENGL);
 	SDL_WM_SetCaption(title, 0);
 	AKUDetectGfxContext();
 	AKUSetScreenSize(width, height);
-
-	inited = true;
+	windowOpened = true;
 }
 
 void closeWindow()
 {
+	windowOpened = false;
 	AKUReleaseGfxContext();
-	SDL_Quit();
-
-	inited = false;
 }
 
 ExitReason::Enum startGameLoop()
 {
+	if(!windowOpened)
+	{
+		cout << "Rendering window was not initialized" << endl;
+		return ExitReason::Error;
+	}
+
 	try
 	{
 		Uint32 lastFrame = SDL_GetTicks();

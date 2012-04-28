@@ -105,7 +105,7 @@ namespace FW
 	bool RefreshWatch(WatchStruct* pWatch, bool _clear)
 	{
 		return ReadDirectoryChangesW(
-			pWatch->mDirHandle, pWatch->mBuffer, sizeof(pWatch->mBuffer), FALSE,
+			pWatch->mDirHandle, pWatch->mBuffer, sizeof(pWatch->mBuffer), TRUE,
 			pWatch->mNotifyFilter, NULL, &pWatch->mOverlapped, _clear ? 0 : WatchCallback) != 0;
 	}
 
