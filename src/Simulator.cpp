@@ -10,6 +10,7 @@
 #include <FileWatcher/FileWatcher.h>
 #include <SDL.h>
 #include <SDL_opengl.h>
+#include <SDL_syswm.h>
 #include "lua.h"
 
 using namespace std;
@@ -84,6 +85,18 @@ void openWindow(const char* title, int width, int height)
 
 	SDL_SetVideoMode(width, height, 32, SDL_OPENGL);
 	SDL_WM_SetCaption(title, 0);
+#ifdef WIN32
+	SDL_SysWMinfo wmInfo;
+	SDL_VERSION(&wmInfo.version);
+	if(SDL_GetWMInfo(&wmInfo) > 0)
+	{
+		HANDLE icon = LoadImage(GetModuleHandle(0), "mainIcon", IMAGE_ICON, 0, 0, LR_DEFAULTSIZE);
+		HWND windowHandle = wmInfo.window;
+		SetClassLong(windowHandle, GCL_HICON, (LONG)icon);
+		SetClassLong(windowHandle, GCL_HICONSM, (LONG)icon);
+		SetConsoleTitle("Log");
+	}
+#endif
 	AKUDetectGfxContext();
 	AKUSetScreenSize(width, height);
 	windowOpened = true;
@@ -233,7 +246,9 @@ ExitReason::Enum startSimulator(const boost::filesystem::path& pathToMain)
 	//run the main script
 	ExitReason::Enum exitReason = ExitReason::Error;
 	if(runScript(filename.string().c_str()))
+	{
 		exitReason = startGameLoop();
+	}
 
 	fw.removeWatch(watchID);
 	//Ensure that window is closed
