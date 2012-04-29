@@ -64,6 +64,7 @@ int main(int argc, char* argv[])
 	}
 	
 	AKUFinalize();
+	SDL_Quit();
 
 	return 0;
 }

@@ -4,6 +4,7 @@
 #include <aku/AKU.h>
 #include <aku/AKU-luaext.h>
 #include <aku/AKU-untz.h>
+#include <lua-headers/moai_lua.h>
 #include "Utils.h"
 #include "Input.h"
 #include <FileWatcher/FileWatcher.h>
@@ -18,8 +19,8 @@ namespace
 {
 	AKUContextID akuContext;
 	FW::FileWatcher fw;
-	Uint32 frameDelta = 1000 / 60;
-	bool inited = false;
+	Uint32 frameDelta = (Uint32)(1000.0 / 60.0);
+	bool windowOpened = false;
 }
 
 class LuaPanicException: public std::exception
@@ -70,88 +71,109 @@ void exitFullscreenMode()
 
 void openWindow(const char* title, int width, int height)
 {
-	if(inited)
-		return;
-
-	SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO);
-	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	if((SDL_WasInit(0) & (SDL_INIT_TIMER | SDL_INIT_VIDEO)) == 0)
+	{
+		SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO);
+		SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+		SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+		SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+		SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 8);
+		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	}
 
 	SDL_SetVideoMode(width, height, 32, SDL_OPENGL);
 	SDL_WM_SetCaption(title, 0);
 	AKUDetectGfxContext();
 	AKUSetScreenSize(width, height);
-
-	inited = true;
+	windowOpened = true;
 }
 
 void closeWindow()
 {
+	windowOpened = false;
 	AKUReleaseGfxContext();
-	SDL_Quit();
-
-	inited = false;
 }
 
 ExitReason::Enum startGameLoop()
 {
-	Uint32 lastFrame = SDL_GetTicks();
-	while(true)
+	if(!windowOpened)
 	{
-		SDL_Event ev;
-		while(SDL_PollEvent(&ev))
+		cout << "Rendering window was not initialized" << endl;
+		return ExitReason::Error;
+	}
+
+	try
+	{
+		Uint32 lastFrame = SDL_GetTicks();
+		while(true)
 		{
-			switch(ev.type)
+			SDL_Event ev;
+			while(SDL_PollEvent(&ev))
 			{
-			case SDL_QUIT:
-				closeWindow();
-				return ExitReason::UserAction;
-			case SDL_KEYDOWN:
-				if(ev.key.keysym.sym == SDLK_r && (SDL_GetModState() & KMOD_CTRL))
+				switch(ev.type)
 				{
+				case SDL_QUIT:
 					closeWindow();
-					return ExitReason::Restart;
-				}
-				break;
-			}
-
-			injectInput(ev);
-		}
-
-		fw.update();
-		if(!projListener.dirty)
-		{
-			AKUUpdate();
-			glClear(GL_COLOR_BUFFER_BIT);
-			AKURender();
-			SDL_GL_SwapBuffers();
-
-			Uint32 currentFrame = SDL_GetTicks();
-			Uint32 delta = currentFrame - lastFrame;
-			if(delta < frameDelta)
-				SDL_Delay(frameDelta - delta);
-			lastFrame = SDL_GetTicks();
-
-			continue;
-		}
-		else
-		{
-			cout << "Change to project folder detected" << endl;
-			while(true)//delay reload in case of a lot of changes
-			{
-				projListener.dirty = false;
-				SDL_Delay(100);
-				fw.update();
-				if(!projListener.dirty)
+					return ExitReason::UserAction;
+				case SDL_KEYDOWN:
+					if(ev.key.keysym.sym == SDLK_r && (SDL_GetModState() & KMOD_CTRL))
+					{
+						closeWindow();
+						return ExitReason::Restart;
+					}
 					break;
+				}
+	
+				injectInput(ev);
 			}
-			return ExitReason::Restart;
+	
+			fw.update();
+			if(!projListener.dirty)
+			{
+				AKUUpdate();
+				glClear(GL_COLOR_BUFFER_BIT);
+				AKURender();
+				SDL_GL_SwapBuffers();
+	
+				Uint32 currentFrame = SDL_GetTicks();
+				Uint32 delta = currentFrame - lastFrame;
+				if(delta < frameDelta)
+					SDL_Delay(frameDelta - delta);
+				lastFrame = SDL_GetTicks();
+	
+				continue;
+			}
+			else
+			{
+				cout << "Change to project folder detected" << endl;
+				while(true)//delay reload in case of a lot of changes
+				{
+					projListener.dirty = false;
+					SDL_Delay(100);
+					fw.update();
+					if(!projListener.dirty)
+						break;
+				}
+				return ExitReason::Restart;
+			}
 		}
 	}
+	catch(LuaPanicException& e)
+	{
+		cout << "Lua panic: " << e.what() << endl;
+	}
+	catch(std::exception& e)
+	{
+		cout << "std exception: " << e.what() << endl;
+	}
+	catch(...)
+	{
+		cout << "Unknown error" << endl;
+		return ExitReason::Error;
+	}
+
+	return ExitReason::Error;
 }
 
 int onLuaPanic(lua_State *L)
@@ -170,6 +192,7 @@ bool initSimulator(const fs::path& profilePath, const char* profile)
 	AKUExtLoadLuacurl();
 	AKUExtLoadLuasocket();
 	AKUExtLoadLuasql();
+	AKUExtLoadLuafilesystem();
 	//Load untz
 	AKUUntzInit();
 
@@ -183,6 +206,7 @@ bool initSimulator(const fs::path& profilePath, const char* profile)
 	lua_atpanic(AKUGetLuaState(), &onLuaPanic);
 
 	//Load base script
+	AKURunBytecode(moai_lua, moai_lua_SIZE);
 	AKURunScript((profilePath / "Akuma.lua").string().c_str());
 	cout << "Loading profile " << profile << endl;
 	if(runScript((profilePath / (string(profile) + ".lua")).string().c_str()))
