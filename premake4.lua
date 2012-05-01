@@ -55,7 +55,9 @@ solution "Akuma"
 				"strmiids"
 			}
 			files {
-				"src/FileWatcher/FileWatcherWin32.cpp"
+				"src/FileWatcher/FileWatcherWin32.cpp",
+				"src/Akuma.ico",
+				"src/Akuma.rc"
 			}
 			excludes {
 				"src/FileWatcher/FileWatcherLinux.h",
