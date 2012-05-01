@@ -18,7 +18,7 @@ A list of existing profiles can be found in bin/profiles
 
 Environment variables:
 
-* AKUMA_DOCUMENT_DIR: MOAIEnvironment.getDocumentDirectory will return the value of this variable.
+* AKUMA_DOCUMENT_DIR: MOAIEnvironment.documentDirectory will have the value of this variable.
 
 
 During simulation:
