@@ -6,6 +6,39 @@
 
 using namespace std;
 
+namespace InputDevice
+{
+	enum Enum
+	{
+		Device,
+
+		Count
+	};
+}
+
+namespace InputSensor
+{
+	enum Enum
+	{
+		Touch,
+		Keyboard,
+		Accelerometer,
+		Gyroscope,
+		Compass,
+		Location,
+		//Common buttons
+		HomeButton,
+		//Android buttons
+		BackButton,
+		SearchButton,
+		MenuButton,
+		//Desktop
+		Pointer,
+
+		Count
+	};
+}
+
 namespace
 {
 	const int TOUCH_RADIUS = 10;
@@ -100,8 +133,6 @@ namespace
 				releaseTouchId(touchId);
 				touches[touchIndex] = touches.back();
 				touches.pop_back();
-
-				//printf("Removed %d\n", touchId);
 			}			
 
 			currentTouch = 0;
@@ -110,6 +141,13 @@ namespace
 
 	inline void handleMouseMove(int x, int y)
 	{
+		AKUEnqueuePointerEvent(
+			InputDevice::Device,
+			InputSensor::Pointer,
+			x,
+			y
+		);
+
 		if(currentTouch == 0)
 			return;
 
@@ -151,6 +189,7 @@ void initInput()
 	AKUSetInputDeviceKeyboard(InputDevice::Device, InputSensor::Keyboard, "keyboard");
 	AKUSetInputDeviceLevel(InputDevice::Device, InputSensor::Accelerometer, "level");
 	AKUSetInputDeviceTouch(InputDevice::Device, InputSensor::Touch, "touch");
+	AKUSetInputDevicePointer(InputDevice::Device, InputSensor::Pointer, "pointer");
 
 	clearTouches();
 }
