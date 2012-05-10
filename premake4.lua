@@ -16,23 +16,15 @@ solution "Akuma"
 		includedirs {
 			"src"
 		}
-		libdirs {
-			"deps"
-		}
 		debugargs {
 			"iPhone_portrait",
 			"../samples/basic/main.lua"
 		}
-		--[[vpaths {
-			["src/**.h"] = "Header Files/*",
-			["src/**.cpp"] = "Source Files/*"
-		}]]
 		links {
 			"moaicore",
 			"moaiext-luaext",
 			"moaiext-untz",
-			"SDL",
-			"lua-5.1.3"
+			"SDL"
 		}
 		defines {
 			"BOOST_FILESYSTEM_VERSION=3"

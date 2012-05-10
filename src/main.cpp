@@ -17,27 +17,18 @@ void simulationLoop(char* argv[])
 
 	while(true)
 	{
-		if(initSimulator(profilePath, argv[1]))
+		ExitReason::Enum exitReason = startSimulator(profilePath, argv[1], pathToMain);
+		switch(exitReason)
 		{
-			ExitReason::Enum exitReason = startSimulator(pathToMain);
-			switch(exitReason)
-			{
-			case ExitReason::UserAction:
-				return;
-			case ExitReason::Error:
-				cout << "Press enter to restart" << endl;
-				cin.get();
-				break;
-			case ExitReason::Restart:
-				cout << "Restarting simulator" << endl;
-				break;
-			}
-		}
-		else
-		{		
-			cout << "Error in intialization" << endl;
-			cin.get();
+		case ExitReason::UserAction:
 			return;
+		case ExitReason::Error:
+			cout << "Press enter to restart" << endl;
+			cin.get();
+			break;
+		case ExitReason::Restart:
+			cout << "Restarting simulator" << endl;
+			break;
 		}
 	}
 }

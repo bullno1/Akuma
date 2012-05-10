@@ -1,3 +1,8 @@
+local trace = (require "StackTracePlus").stacktrace
+MOAISim.setTraceback(function(...)
+	print(trace(...))
+end)
+
 Akuma = {}
 
 function Akuma.setupEnvironment(params)

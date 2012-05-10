@@ -5,13 +5,12 @@
 #include <aku/AKU-luaext.h>
 #include <aku/AKU-untz.h>
 #include <lua-headers/moai_lua.h>
-#include "Utils.h"
-#include "Input.h"
 #include <FileWatcher/FileWatcher.h>
 #include <SDL.h>
 #include <SDL_opengl.h>
 #include <SDL_syswm.h>
-#include "lua.h"
+#include "Utils.h"
+#include "Input.h"
 
 using namespace std;
 namespace fs = boost::filesystem;
@@ -22,42 +21,16 @@ namespace
 	FW::FileWatcher fw;
 	Uint32 frameDelta = (Uint32)(1000.0 / 60.0);
 	bool windowOpened = false;
-}
 
-class LuaPanicException: public std::exception
-{
-public:
-	LuaPanicException(const char* what)
-		:std::exception(what)
-	{}
-};
-
-struct ProjectFolderWatchListener: public FW::FileWatchListener
-{
-	void handleFileAction(FW::WatchID watchid, const FW::String& dir, const FW::String& filename, FW::Action action)
+	struct ProjectFolderWatchListener: public FW::FileWatchListener
 	{
-		dirty = true;
-	}
-
-	bool dirty;
-};
-
-ProjectFolderWatchListener projListener;
-
-//similar to AKURunScript but have panic guard
-bool runScript(const char* name)
-{
-	try
-	{
-		AKURunScript(name);
-	}
-	catch(LuaPanicException& e)
-	{
-		cout << "LuaPanic: " << e.what() << endl;
-		return false;
-	}
-
-	return true;
+		void handleFileAction(FW::WatchID watchid, const FW::String& dir, const FW::String& filename, FW::Action action)
+		{
+			dirty = true;
+		}
+	
+		bool dirty;
+	} projListener;
 }
 
 void enterFullscreenMode()
@@ -172,13 +145,9 @@ ExitReason::Enum startGameLoop()
 			}
 		}
 	}
-	catch(LuaPanicException& e)
-	{
-		cout << "Lua panic: " << e.what() << endl;
-	}
 	catch(std::exception& e)
 	{
-		cout << "std exception: " << e.what() << endl;
+		cout << "Exception: " << e.what() << endl;
 	}
 	catch(...)
 	{
@@ -189,12 +158,7 @@ ExitReason::Enum startGameLoop()
 	return ExitReason::Error;
 }
 
-int onLuaPanic(lua_State *L)
-{
-	throw LuaPanicException(lua_tolstring(L, -1, 0));
-}
-
-bool initSimulator(const fs::path& profilePath, const char* profile)
+void initSimulator(const fs::path& profilePath, const char* profile)
 {
 	writeSeparator();
 	cout << "Initializing AKU" << endl;
@@ -215,41 +179,33 @@ bool initSimulator(const fs::path& profilePath, const char* profile)
 	AKUSetFunc_ExitFullscreenMode(&exitFullscreenMode);
 	AKUSetFunc_OpenWindow(&openWindow);
 
-	//handle panic
-	lua_atpanic(AKUGetLuaState(), &onLuaPanic);
-
-	//Load base script
+	//Load base scripts
 	AKURunBytecode(moai_lua, moai_lua_SIZE);
-	AKURunScript((profilePath / "Akuma.lua").string().c_str());
+	AKUSetWorkingDirectory(profilePath.string().c_str());
+	AKURunScript("Akuma.lua");
 	cout << "Loading profile " << profile << endl;
-	if(runScript((profilePath / (string(profile) + ".lua")).string().c_str()))
-	{
-		writeSeparator();
-		return true;
-	}
-	else
-	{
-		AKUDeleteContext(akuContext);
-		return false;
-	}
+	AKURunScript((string(profile) + ".lua").c_str());
+	writeSeparator();
 }
 
-ExitReason::Enum startSimulator(const boost::filesystem::path& pathToMain)
+ExitReason::Enum startSimulator(
+	const boost::filesystem::path& profilePath,
+	const char* profile,
+	const boost::filesystem::path& pathToMain
+)
 {
+	initSimulator(profilePath, profile);
+
 	fs::path filename = pathToMain.filename();
 	fs::path projectDir = pathToMain.parent_path();
 	//change working directory
 	AKUSetWorkingDirectory(projectDir.string().c_str());
+	//run the main script
+	AKURunScript(filename.string().c_str());
 	//Start the watcher
 	projListener.dirty = false;
 	FW::WatchID watchID = fw.addWatch(projectDir.string(), &projListener);
-	//run the main script
-	ExitReason::Enum exitReason = ExitReason::Error;
-	if(runScript(filename.string().c_str()))
-	{
-		exitReason = startGameLoop();
-	}
-
+	ExitReason::Enum exitReason = startGameLoop();
 	fw.removeWatch(watchID);
 	//Ensure that window is closed
 	closeWindow();
