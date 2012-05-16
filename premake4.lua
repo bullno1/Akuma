@@ -44,7 +44,8 @@ solution "Akuma"
 				"gdi32",
 				"psapi",
 				"dsound",
-				"strmiids"
+				"strmiids",
+				"rpcrt4"
 			}
 			files {
 				"src/FileWatcher/FileWatcherWin32.cpp",
