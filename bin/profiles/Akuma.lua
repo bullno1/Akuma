@@ -1,6 +1,5 @@
-local trace = (require "StackTracePlus").stacktrace
 MOAISim.setTraceback(function(...)
-	print(trace(...))
+	print(debug.traceback(...))
 end)
 
 Akuma = {}
