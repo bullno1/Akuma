@@ -11,6 +11,7 @@
 #include <SDL_syswm.h>
 #include "Utils.h"
 #include "Input.h"
+#include "lua.hpp"
 
 using namespace std;
 namespace fs = boost::filesystem;
@@ -26,7 +27,32 @@ namespace
 	{
 		void handleFileAction(FW::WatchID watchid, const FW::String& dir, const FW::String& filename, FW::Action action)
 		{
-			dirty = true;
+			//consult the script before reporting this event
+			lua_State* L = AKUGetLuaState();
+			int top = lua_gettop(L);
+			lua_getglobal(L, "Akuma");
+			lua_getfield(L, -1, "onFileEvent");
+			if(lua_isfunction(L, -1))
+			{
+				lua_pushstring(L, filename.c_str());
+				lua_pushstring(L, dir.c_str());
+				lua_pushnumber(L, (lua_Number)action);
+				if(lua_pcall(L, 3, 1, 0) == 0)
+				{
+					dirty |= lua_toboolean(L, -1) != 0;
+				}
+				else
+				{
+					cout << "Error while reporting file change event" << endl;
+					cout << lua_tostring(L, -1) << endl;
+					dirty = true;
+				}
+			}
+			else//no handler, just report this event
+			{
+				dirty = true;
+			}
+			lua_settop(L, top);
 		}
 	
 		bool dirty;
@@ -204,7 +230,7 @@ ExitReason::Enum startSimulator(
 	AKURunScript(filename.string().c_str());
 	//Start the watcher
 	projListener.dirty = false;
-	FW::WatchID watchID = fw.addWatch(projectDir.string(), &projListener);
+	FW::WatchID watchID = fw.addWatch(projectDir.string(), &projListener, true);
 	ExitReason::Enum exitReason = startGameLoop();
 	fw.removeWatch(watchID);
 	//Ensure that window is closed

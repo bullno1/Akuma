@@ -18,6 +18,7 @@ solution "Akuma"
 			os.getenv("MOAI_INCLUDE")
 		}
 		libdirs {
+			"deps",
 			os.getenv("MOAI_LIB")
 		}
 		debugargs {
@@ -28,7 +29,8 @@ solution "Akuma"
 			"moaicore",
 			"moaiext-luaext",
 			"moaiext-untz",
-			"SDL"
+			"SDL",
+			"moai-lua"
 		}
 		defines {
 			"BOOST_FILESYSTEM_VERSION=3"
