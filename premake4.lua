@@ -14,7 +14,11 @@ solution "Akuma"
 			"src/FileWatcher/FileWatcher.cpp"
 		}
 		includedirs {
-			"src"
+			"src",
+			os.getenv("MOAI_INCLUDE")
+		}
+		libdirs {
+			os.getenv("MOAI_LIB")
 		}
 		debugargs {
 			"iPhone_portrait",

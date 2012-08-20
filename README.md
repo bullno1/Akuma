@@ -7,6 +7,9 @@ How to build
 * Get the dependencies:
 	- [SDL](http://www.libsdl.org/)
 	- [Boost](http://www.boost.org) with *boost.filesystem* built
+* Setup your environment:
+	- MOAI_INCLUDE must point to the location of moai headers(e.g: moai-dev/src)
+	- MOAI_LIB must point to the location of moai libraries(e.g: moai-dev/vs2010/bin/Win32/Release)
 * Use [premake4](http://industriousone.com/premake/download) to generate a suitable project file or build script.
 
 Usage
