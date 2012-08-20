@@ -15,7 +15,10 @@ namespace ExitReason
 	};
 }
 
-bool initSimulator(const boost::filesystem::path& profilePath, const char* profile);
-ExitReason::Enum startSimulator(const boost::filesystem::path& pathToMain);
+ExitReason::Enum startSimulator(
+	const boost::filesystem::path& profilePath,
+	const char* profile,
+	const boost::filesystem::path& pathToMain
+);
 
 #endif

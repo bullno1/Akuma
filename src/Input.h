@@ -3,38 +3,6 @@
 
 #include <SDL.h>
 
-namespace InputDevice
-{
-	enum Enum
-	{
-		Device,
-
-		Count
-	};
-}
-
-namespace InputSensor
-{
-	enum Enum
-	{
-		Touch,
-		Keyboard,
-		Accelerometer,
-		Gyroscope,
-		Compass,
-		Location,
-		//Common buttons
-		HomeButton,
-		//Android buttons
-		BackButton,
-		SearchButton,
-		MenuButton,
-
-		Count
-	};
-}
-
-
 void initInput();
 void injectInput(const SDL_Event& ev);
 

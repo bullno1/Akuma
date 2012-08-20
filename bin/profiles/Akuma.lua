@@ -1,3 +1,7 @@
+MOAISim.setTraceback(function(...)
+	print(debug.traceback(...))
+end)
+
 Akuma = {}
 
 function Akuma.setupEnvironment(params)

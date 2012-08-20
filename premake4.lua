@@ -14,25 +14,23 @@ solution "Akuma"
 			"src/FileWatcher/FileWatcher.cpp"
 		}
 		includedirs {
-			"src"
+			"src",
+			os.getenv("MOAI_INCLUDE")
 		}
 		libdirs {
-			"deps"
+			"deps",
+			os.getenv("MOAI_LIB")
 		}
 		debugargs {
 			"iPhone_portrait",
 			"../samples/basic/main.lua"
 		}
-		--[[vpaths {
-			["src/**.h"] = "Header Files/*",
-			["src/**.cpp"] = "Source Files/*"
-		}]]
 		links {
 			"moaicore",
 			"moaiext-luaext",
 			"moaiext-untz",
 			"SDL",
-			"lua-5.1.3"
+			"moai-lua"
 		}
 		defines {
 			"BOOST_FILESYSTEM_VERSION=3"
@@ -52,7 +50,8 @@ solution "Akuma"
 				"gdi32",
 				"psapi",
 				"dsound",
-				"strmiids"
+				"strmiids",
+				"rpcrt4"
 			}
 			files {
 				"src/FileWatcher/FileWatcherWin32.cpp",
